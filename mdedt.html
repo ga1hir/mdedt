@@ -457,7 +457,8 @@ console.log('Hello World!');
         // Markedの設定
         marked.setOptions({
             breaks: true,
-            gfm: true
+            gfm: true,
+            tables: true
         });
 
         // 保存状態の更新
@@ -622,6 +623,65 @@ console.log('Hello World!');
             return markdown;
         }
 
+        // テーブルの位置指定を適用する関数
+        function applyTableAlignment() {
+            const previewContent = document.getElementById('preview-content');
+            const tables = previewContent.querySelectorAll('table');
+            
+            tables.forEach(table => {
+                // 元のMarkdownテーブルを探すため、テーブルの前後のテキストを確認
+                const tableHTML = table.outerHTML;
+                const markdownText = document.getElementById('markdown-input').value;
+                
+                // テーブルの行を取得
+                const headerRow = table.querySelector('thead tr') || table.querySelector('tr:first-child');
+                if (!headerRow) return;
+                
+                const headerCells = headerRow.querySelectorAll('th, td');
+                const columnCount = headerCells.length;
+                
+                // Markdownテキストからテーブル部分を抽出してアライメントを判定
+                const tableLines = markdownText.split('\n').filter(line => line.includes('|'));
+                let alignmentLine = '';
+                
+                // アライメント行を探す（通常は2行目）
+                for (let i = 0; i < tableLines.length - 1; i++) {
+                    const currentLine = tableLines[i];
+                    const nextLine = tableLines[i + 1];
+                    
+                    if (currentLine.includes('|') && nextLine.includes('|') && 
+                        (nextLine.includes('---') || nextLine.includes(':--') || nextLine.includes('--:'))) {
+                        alignmentLine = nextLine;
+                        break;
+                    }
+                }
+                
+                if (!alignmentLine) return;
+                
+                // アライメント情報を解析
+                const alignmentCells = alignmentLine.split('|').map(cell => cell.trim()).filter(cell => cell);
+                const alignments = alignmentCells.map(cell => {
+                    if (cell.startsWith(':') && cell.endsWith(':')) {
+                        return 'center';
+                    } else if (cell.endsWith(':')) {
+                        return 'right';
+                    } else {
+                        return 'left';
+                    }
+                });
+                
+                // 全ての行とセルにアライメントを適用
+                const allRows = table.querySelectorAll('tr');
+                allRows.forEach(row => {
+                    const cells = row.querySelectorAll('th, td');
+                    cells.forEach((cell, index) => {
+                        if (alignments[index]) {
+                            cell.style.textAlign = alignments[index];
+                        }
+                    });
+                });
+            });
+        }
 
         // プレビュー更新
         function updatePreview() {
@@ -632,6 +692,9 @@ console.log('Hello World!');
                 const html = marked.parse(processedMarkdown);
                 const cleanHtml = DOMPurify.sanitize(html);
                 document.getElementById('preview-content').innerHTML = cleanHtml;
+                
+                // テーブルの位置指定を適用
+                applyTableAlignment();
                 
                 // シンタックスハイライトを適用
                 if (typeof Prism !== 'undefined') {
