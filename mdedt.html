@@ -454,6 +454,33 @@ console.log('Hello World!');
         let hasUnsavedChanges = false;
         let initialContent = '';
         
+        // 共通：画像参照をBase64データに変換する関数
+        function convertImageReferencesToBase64(content) {
+            let processedContent = content;
+            
+            imageStorage.forEach((base64Data, imageName) => {
+                // 複数のパターンで検索・置換
+                const patterns = [
+                    '![clipboard-image](' + imageName + ')',
+                    '![' + imageName + '](' + imageName + ')',
+                    '](' + imageName + ')'
+                ];
+                
+                patterns.forEach(pattern => {
+                    if (processedContent.includes(pattern)) {
+                        if (pattern === '](' + imageName + ')') {
+                            processedContent = processedContent.replace(pattern, '](' + base64Data + ')');
+                        } else {
+                            const altText = pattern.includes('clipboard-image') ? 'clipboard-image' : imageName;
+                            processedContent = processedContent.replace(pattern, '![' + altText + '](' + base64Data + ')');
+                        }
+                    }
+                });
+            });
+            
+            return processedContent;
+        }
+        
         // Markedの設定
         marked.setOptions({
             breaks: true,
@@ -581,22 +608,8 @@ console.log('Hello World!');
 
         // はてな記法の処理
         function processHatenaSyntax(markdown) {
-            // 画像参照をBase64データに置換
-            imageStorage.forEach((base64Data, imageName) => {
-                // シンプルな文字列置換
-                const searchPattern = '![clipboard-image](' + imageName + ')';
-                const replacement = '![clipboard-image](' + base64Data + ')';
-                
-                if (markdown.includes(searchPattern)) {
-                    markdown = markdown.replace(searchPattern, replacement);
-                } else {
-                    // より柔軟な検索を試す
-                    const flexiblePattern = '](' + imageName + ')';
-                    if (markdown.includes(flexiblePattern)) {
-                        markdown = markdown.replace(flexiblePattern, '](' + base64Data + ')');
-                    }
-                }
-            });
+            // 共通関数を使用して画像参照をBase64データに置換
+            markdown = convertImageReferencesToBase64(markdown);
 
             // [f:id:username:timestamp] 形式の画像記法
             markdown = markdown.replace(/$$f:id:([^:]+):([^$$]+)$$/g, (match, username, timestamp) => {
@@ -743,36 +756,8 @@ console.log('Hello World!');
         function downloadMarkdown() {
             let content = document.getElementById('markdown-input').value;
             
-            console.log('ダウンロード開始');
-            console.log('imageStorage内容:', Array.from(imageStorage.keys()));
-            console.log('ダウンロード前のcontent:', content.substring(0, 200));
-            
-            // 画像参照をBase64データに置換してダウンロード
-            imageStorage.forEach((base64Data, imageName) => {
-                console.log('処理中の画像名:', imageName);
-                
-                // 複数のパターンで検索・置換
-                const patterns = [
-                    '![clipboard-image](' + imageName + ')',
-                    '![' + imageName + '](' + imageName + ')',
-                    '](' + imageName + ')'
-                ];
-                
-                patterns.forEach(pattern => {
-                    if (content.includes(pattern)) {
-                        console.log('見つかったパターン:', pattern);
-                        if (pattern === '](' + imageName + ')') {
-                            content = content.replace(pattern, '](' + base64Data + ')');
-                        } else {
-                            const altText = pattern.includes('clipboard-image') ? 'clipboard-image' : imageName;
-                            content = content.replace(pattern, '![' + altText + '](' + base64Data + ')');
-                        }
-                        console.log('置換後のcontent:', content.substring(0, 200));
-                    }
-                });
-            });
-            
-            console.log('最終的なcontent:', content.substring(0, 500));
+            // 共通関数を使用して画像参照をBase64データに変換
+            content = convertImageReferencesToBase64(content);
             
             const blob = new Blob([content], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
