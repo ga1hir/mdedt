@@ -712,6 +712,8 @@ console.log('Hello World!');
                     return;
                 }
             }
+            // ファイル入力要素の値をリセットしてから開く
+            document.getElementById('file-input').value = '';
             document.getElementById('file-input').click();
         }
 
@@ -854,6 +856,7 @@ console.log('Hello World!');
                 console.log('クリップボードに画像が見つかりませんでした');
             }
         }
+
         // エディタクリア
         function clearEditor() {
             let confirmMessage = 'エディタの内容をクリアしますか？';
@@ -868,6 +871,9 @@ console.log('Hello World!');
                 updateImageList();
                 initialContent = '';
                 updateSaveStatus(true);
+                // ファイル入力要素の値をリセット
+                document.getElementById('file-input').value = '';
+                document.getElementById('image-input').value = '';
             }
         }
 
