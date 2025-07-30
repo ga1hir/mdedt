@@ -141,6 +141,11 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
         .file-input {
             display: none;
         }
@@ -429,10 +434,13 @@ console.log('Hello World!');
             👁️ プレビュー更新
         </button>
         <button class="btn btn-secondary" onclick="openFile()">
-            📁 ファイルを開く
+            📁 Markdownファイルを開く
         </button>
         <button class="btn btn-success" onclick="downloadMarkdown()">
-            💾 ダウンロード
+            💾 Markdownダウンロード
+        </button>
+        <button class="btn btn-info" onclick="downloadHTML()">
+            📄 HTMLダウンロード
         </button>
         <button class="btn btn-secondary" onclick="document.getElementById('image-input').click()">
             🖼️ 画像追加
@@ -752,7 +760,7 @@ console.log('Hello World!');
                 reader.readAsText(file);
             }
         }
-        // ファイルダウンロード（画像も含めて処理）
+        // Markdownファイルダウンロード（画像も含めて処理）
         function downloadMarkdown() {
             let content = document.getElementById('markdown-input').value;
             
@@ -773,6 +781,193 @@ console.log('Hello World!');
             initialContent = document.getElementById('markdown-input').value;
             updateSaveStatus(true);
         }
+        // HTMLファイルダウンロード機能
+        function downloadHTML() {
+            // プレビューを最新の状態に更新
+            updatePreview();
+            
+            // プレビューコンテンツを取得
+            const previewContent = document.getElementById('preview-content').innerHTML;
+            
+            // 完全なHTMLドキュメントを作成
+            const htmlContent = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Document</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin: 1rem 0 0.5rem 0;
+            color: #333;
+        }
+        
+        h1 { font-size: 2rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+        h2 { font-size: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+        h3 { font-size: 1.3rem; }
+        h4 { font-size: 1.1rem; }
+        
+        p {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+        
+        code {
+            background: #f1f3f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        ul, ol {
+            margin: 0.5rem 0;
+            padding-left: 2rem;
+        }
+        
+        li {
+            margin: 0.25rem 0;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 0.5rem 0;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .hatena-syntax {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+        }
+        
+        /* Prism.js スタイル */
+        .token.comment,
+        .token.prolog,
+        .token.doctype,
+        .token.cdata {
+            color: #708090;
+        }
+        
+        .token.punctuation {
+            color: #999;
+        }
+        
+        .token.property,
+        .token.tag,
+        .token.boolean,
+        .token.number,
+        .token.constant,
+        .token.symbol,
+        .token.deleted {
+            color: #905;
+        }
+        
+        .token.selector,
+        .token.attr-name,
+        .token.string,
+        .token.char,
+        .token.builtin,
+        .token.inserted {
+            color: #690;
+        }
+        
+        .token.operator,
+        .token.entity,
+        .token.url,
+        .language-css .token.string,
+        .style .token.string {
+            color: #9a6e3a;
+        }
+        
+        .token.atrule,
+        .token.attr-value,
+        .token.keyword {
+            color: #07a;
+        }
+        
+        .token.function,
+        .token.class-name {
+            color: #DD4A68;
+        }
+        
+        .token.regex,
+        .token.important,
+        .token.variable {
+            color: #e90;
+        }
+    </style>
+</head>
+<body>
+` + previewContent + `
+</body>
+</html>`;
+            
+            // HTMLファイルとしてダウンロード
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'document.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
 
         // 画像アップロード処理
         function handleImageUpload(event) {
